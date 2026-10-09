@@ -1,186 +1,230 @@
 <!DOCTYPE html>
-<html lang="th" class="scroll-smooth">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartInventory.AI - ระบบจัดการสต๊อกอัจฉริยะ</title>
-    <!-- โหลด Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* เพิ่ม Fallback ป้องกันจอขาวโพลนเวลา CDN ไม่ทำงาน */
-        body { 
-            font-family: 'Prompt', sans-serif; 
-            background-color: #0B0F19; 
-            color: #ffffff;
-        }
-        
-        /* Glassmorphism Effect */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartInventory – รู้ก่อนว่าวัตถุดิบอะไรหมดก่อน</title>
+<meta name="description" content="เครื่องมือคำนวณสต๊อกสำหรับร้านอาหารและร้านเครื่องดื่ม บอกว่าทำได้อีกกี่หน่วย อะไรหมดก่อน และต้องซื้ออะไรเพิ่ม">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5EF; --ink:#1B2A22; --muted:#66756B; --line:#D9DFD3;
+  --green:#1F5C3F; --green-d:#163F2C; --yolk:#F2B632; --chili:#C7372B; --ok:#2F7A4F;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Sarabun','Prompt',system-ui,sans-serif;font-size:17px;line-height:1.6}
+h1,h2,h3{font-family:'Prompt','Sarabun',sans-serif;margin:0;line-height:1.25}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--yolk);outline-offset:3px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
 
-        /* Floating Animation */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float 6s ease-in-out 3s infinite; }
+/* nav */
+nav{position:absolute;top:0;left:0;right:0;z-index:5}
+nav .wrap{display:flex;justify-content:space-between;align-items:center;padding-top:18px;padding-bottom:18px}
+.brand{font-family:'Prompt',sans-serif;font-weight:700;font-size:20px;color:#fff;text-decoration:none}
+.btn{display:inline-block;text-decoration:none;font-weight:600;border-radius:12px;padding:12px 22px;transition:transform .15s,background .15s}
+.btn.yolk{background:var(--yolk);color:var(--green-d)}
+.btn.yolk:hover{transform:translateY(-2px);background:#F7C453}
+.btn.ghost{border:1px solid rgba(255,255,255,.4);color:#fff}
+.btn.ghost:hover{background:rgba(255,255,255,.1)}
+nav .btn{padding:8px 16px;font-size:15px}
 
-        /* Glowing Gradients */
-        .text-gradient {
-            background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #ea580c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    </style>
+/* hero */
+.hero{background:var(--green-d);color:#EEF3EA;padding:120px 0 72px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:48px;align-items:center}
+.hero h1{font-size:clamp(34px,5.4vw,56px);font-weight:700;color:#fff}
+.hero p.lead{font-size:19px;opacity:.85;max-width:34ch;margin:18px 0 28px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero small{display:block;margin-top:14px;opacity:.65;font-size:14px}
+
+/* live demo */
+.demo{background:#fff;color:var(--ink);border-radius:22px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+.demo h2{font-size:15px;font-weight:600;color:var(--muted);margin-bottom:14px}
+.d-row{display:grid;grid-template-columns:84px 1fr 64px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #EEF1EA}
+.d-row:last-of-type{border-bottom:0}
+.d-row .n{font-weight:600}
+.d-row .n small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.d-row .v{text-align:right;font-family:'Prompt',sans-serif;font-weight:600;font-size:18px}
+.d-main{min-width:0}
+input[type=range]{width:100%;accent-color:var(--green);margin:0}
+.d-bar{height:6px;background:#E8ECE3;border-radius:99px;margin-top:8px;overflow:hidden}
+.d-bar i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .15s,background .15s}
+.d-row.bn .d-bar i{background:var(--chili)}
+.d-row.bn .v{color:var(--chili)}
+.d-result{margin-top:14px;background:var(--green-d);color:#EEF3EA;border-radius:14px;padding:14px 16px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.d-result b{font-family:'Prompt',sans-serif;font-size:40px;line-height:1;color:var(--yolk)}
+.d-result span strong{color:#fff;border-bottom:2px solid var(--yolk)}
+
+/* sections */
+section.s{padding:84px 0}
+section.s h2.t{font-size:clamp(26px,3.6vw,36px);font-weight:700;color:var(--green-d);max-width:22ch}
+section.s p.sub{color:var(--muted);max-width:52ch;margin:10px 0 0}
+
+/* steps (sequence) */
+.steps{margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;counter-reset:s;border-top:2px solid var(--green-d)}
+.step{padding:22px 24px 0 0;counter-increment:s}
+.step::before{content:counter(s);display:block;font-family:'Prompt',sans-serif;font-weight:700;font-size:40px;line-height:1;color:var(--yolk);-webkit-text-stroke:0;margin-bottom:10px}
+.step h3{font-size:19px;font-weight:600;margin-bottom:6px}
+.step p{margin:0;color:var(--muted);font-size:16px}
+
+/* presets */
+.presets{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.p-grid{margin-top:32px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.p-item{display:block;text-decoration:none;border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--paper);transition:border-color .15s,transform .15s}
+.p-item:hover{border-color:var(--green);transform:translateY(-3px)}
+.p-item .e{font-size:30px;line-height:1}
+.p-item h3{font-size:17px;font-weight:600;margin:10px 0 4px}
+.p-item p{margin:0;font-size:14px;color:var(--muted)}
+
+/* features */
+.f-list{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:28px 56px}
+.f-list h3{font-size:18px;font-weight:600;margin-bottom:4px}
+.f-list p{margin:0;color:var(--muted);font-size:16px}
+
+/* cta */
+.final{background:var(--green);color:#fff;text-align:center;padding:72px 0}
+.final h2{font-size:clamp(26px,4vw,38px);font-weight:700;color:#fff;margin-bottom:10px}
+.final p{opacity:.85;margin:0 0 26px}
+footer{padding:26px 0;text-align:center;font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){
+  .hero{padding-top:96px}
+  .hero .wrap{grid-template-columns:1fr;gap:36px}
+  .steps{grid-template-columns:1fr;border-top:0}
+  .step{border-top:2px solid var(--green-d);margin-bottom:8px}
+  .p-grid{grid-template-columns:1fr 1fr}
+  .f-list{grid-template-columns:1fr}
+  section.s{padding:60px 0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
-<body class="bg-[#0B0F19] text-white min-h-screen overflow-x-hidden relative">
+<body>
 
-    <!-- Background Glow Effects -->
-    <div class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-amber-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 z-0 pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-orange-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 z-0 pointer-events-none"></div>
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">SmartInventory</a>
+    <a class="btn ghost" href="index.html">เปิดแอป</a>
+  </div>
+</nav>
 
-    <!-- Navbar -->
-    <nav class="fixed w-full z-50 glass-card border-b-0 border-white/10 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-amber-400 to-orange-600 text-white p-2.5 rounded-xl text-xl shadow-lg shadow-orange-500/30">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                </div>
-                <span class="font-bold text-xl tracking-wide">SmartInventory<span class="text-amber-500">.AI</span></span>
-            </div>
-            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
-                <a href="#features" class="hover:text-amber-400 transition">ความสามารถ</a>
-                <a href="#about" class="hover:text-amber-400 transition">เกี่ยวกับโปรเจกต์</a>
-            </div>
-            <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
-            <a href="index.html" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 backdrop-blur-md">
-                เข้าสู่ระบบ <i class="fa-solid fa-arrow-right text-xs"></i>
-            </a>
-        </div>
-    </nav>
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1>รู้ก่อนว่าวัตถุดิบอะไรหมดก่อน แล้วสั่งของให้ถูกตัว</h1>
+      <p class="lead">ใส่สต๊อกที่มี บอกว่าขาย 1 ที่ใช้อะไรเท่าไหร่ ระบบจะบอกว่าทำได้อีกกี่ที่ และต้องซื้ออะไรเพิ่มถ้าอยากทำให้ถึงเป้า</p>
+      <div class="cta">
+        <a class="btn yolk" href="index.html">เริ่มคำนวณสต๊อก</a>
+        <a class="btn ghost" href="#how">ดูวิธีใช้</a>
+      </div>
+      <small>ใช้ฟรี ไม่ต้องสมัคร ข้อมูลเก็บในเครื่องของคุณ</small>
+    </div>
 
-    <!-- Hero Section -->
-    <section class="relative z-10 pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
-        <div class="flex-1 text-center lg:text-left space-y-8">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-amber-500/30 text-amber-400 text-sm font-medium mb-2">
-                <i class="fa-solid fa-sparkles"></i> โปรเจกต์วิชา AI in Modern Life
-            </div>
-            <h1 class="text-5xl lg:text-7xl font-extrabold leading-tight">
-                จัดการสต๊อกให้ฉลาดขึ้นด้วย <br>
-                <span class="text-gradient">AI & Data Analytics</span>
-            </h1>
-            <p class="text-lg text-gray-400 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
-                เปลี่ยนเรื่องน่าปวดหัวในการนับสต๊อกร้านอาหาร ให้เป็นเรื่องง่าย ระบบจะวิเคราะห์วัตถุดิบที่หมดก่อน (Bottleneck) พร้อมคำนวณยอดขายสูงสุดที่คุณทำได้แบบ Real-time
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
-                <a href="index.html" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold px-8 py-4 rounded-full shadow-lg shadow-orange-500/25 transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-rocket"></i> เริ่มต้นใช้งานฟรี
-                </a>
-                <a href="#features" class="glass-card hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-full transition flex items-center justify-center gap-3">
-                    <i class="fa-regular fa-circle-play"></i> ดูฟีเจอร์การทำงาน
-                </a>
-            </div>
-        </div>
+    <div class="demo" aria-label="ตัวอย่างลองเล่น">
+      <h2>ลองเลื่อนดู: แซนด์วิช 1 ชิ้นใช้อะไรบ้าง</h2>
+      <div id="demoRows"></div>
+      <div class="d-result" aria-live="polite">
+        <b class="num" id="dNum">0</b>
+        <span id="dTxt"></span>
+      </div>
+    </div>
+  </div>
+</header>
 
-        <!-- 3D/Floating Visual Elements -->
-        <div class="flex-1 relative hidden md:block w-full h-[400px]">
-            <!-- Main Glass Card -->
-            <div class="absolute top-10 right-10 w-full max-w-md glass-card rounded-2xl p-6 shadow-2xl animate-float z-20 border-white/20">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-lg"><i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i> สรุปการผลิตวันนี้</h3>
-                    <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded">วัตถุดิบใกล้หมด!</span>
-                </div>
-                <div class="space-y-4">
-                    <div class="bg-white/5 rounded-lg p-4 flex justify-between items-center border border-white/5">
-                        <span class="text-gray-300">ผลิตได้สูงสุด</span>
-                        <span class="text-2xl font-bold text-amber-400">120 <span class="text-sm font-normal text-gray-500">เสิร์ฟ</span></span>
-                    </div>
-                    <div class="bg-white/5 rounded-lg p-4 border border-white/5">
-                        <span class="text-gray-400 text-sm block mb-2">จุดคอขวด (Bottleneck)</span>
-                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
-                            <div class="bg-red-500 h-2.5 rounded-full" style="width: 15%"></div>
-                        </div>
-                        <span class="text-red-400 font-medium text-sm">ขนมปัง (เหลือ 15%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Small Floating Element -->
-            <div class="absolute -bottom-4 -left-4 glass-card rounded-xl p-4 shadow-xl animate-float-delayed z-30 border-amber-500/30">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold">บันทึกข้อมูลอัตโนมัติ</p>
-                        <p class="text-xs text-gray-400">Local Storage Active</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="s" id="how">
+  <div class="wrap">
+    <h2 class="t">ใช้งานสามขั้นตอน</h2>
+    <p class="sub">ไม่ต้องตั้งค่าอะไรซับซ้อน เปิดมาก็เริ่มใช้ได้เลย</p>
+    <div class="steps">
+      <div class="step"><h3>เลือกเทมเพลตหรือสร้างเอง</h3><p>มีสูตรตั้งต้นของร้านกาแฟ แซนด์วิช ชานมไข่มุก และส้มตำ แก้ตัวเลขให้ตรงกับร้านคุณได้ทุกช่อง</p></div>
+      <div class="step"><h3>กรอกสต๊อกที่เหลือ</h3><p>พิมพ์จำนวนที่เหลือ ผลลัพธ์เปลี่ยนทันทีที่พิมพ์ ไม่ต้องกดคำนวณ</p></div>
+      <div class="step"><h3>ดูว่าต้องซื้ออะไร</h3><p>ใส่เป้าหมาย เช่น ขายให้ได้ 100 ที่ ระบบสรุปรายการที่ต้องซื้อเพิ่ม พร้อมงบโดยประมาณ</p></div>
+    </div>
+  </div>
+</section>
 
-    <!-- Features Section -->
-    <section id="features" class="relative z-10 py-20 bg-white/5 border-t border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl lg:text-4xl font-bold mb-4">ทำไมต้องใช้ <span class="text-amber-400">SmartInventory</span></h2>
-                <p class="text-gray-400">ออกแบบมาเพื่อตอบโจทย์ร้านค้าขนาดย่อม (SME) และการวิเคราะห์ทางคณิตศาสตร์</p>
-            </div>
+<section class="s presets">
+  <div class="wrap">
+    <h2 class="t">เริ่มจากร้านที่ใกล้เคียงกับคุณ</h2>
+    <p class="sub">กดเลือกแล้วเปิดแอปพร้อมสูตรนั้นให้เลย</p>
+    <div class="p-grid">
+      <a class="p-item" href="index.html?store=coffee"><div class="e">☕</div><h3>ร้านกาแฟ</h3><p>ลาเต้ 1 แก้ว ใช้เมล็ดกาแฟ นม น้ำเชื่อม น้ำแข็ง</p></a>
+      <a class="p-item" href="index.html?store=sandwich"><div class="e">🥪</div><h3>ร้านแซนด์วิช</h3><p>ขนมปัง ไส้กรอก โบโลน่า ไข่ ผัก มายองเนส</p></a>
+      <a class="p-item" href="index.html?store=bubbletea"><div class="e">🧋</div><h3>ชานมไข่มุก</h3><p>ใบชา ครีมเทียม น้ำตาล ไข่มุก แก้ว หลอด</p></a>
+      <a class="p-item" href="index.html?store=somtum"><div class="e">🥗</div><h3>ร้านส้มตำ</h3><p>คิดเป็นครก ตั้งแต่มะละกอ พริก กระเทียม ถึงถั่ว</p></a>
+    </div>
+  </div>
+</section>
 
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
-                    <div class="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-400 text-2xl mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">AI Powered Logic</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">ใช้แนวคิดการวิเคราะห์จุดคอขวด (Bottleneck) แบบเดียวกับโรงงานอุตสาหกรรม มาย่อส่วนให้ใช้งานง่ายสำหรับร้านอาหาร</p>
-                </div>
-                <!-- Feature 2 -->
-                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
-                    <div class="w-14 h-14 bg-orange-500/20 rounded-2xl flex items-center justify-center text-orange-400 text-2xl mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-store"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Ready-to-use Presets</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">มีเทมเพลตสูตรสำเร็จรูปสำหรับ ร้านกาแฟ, แซนด์วิช, ชานมไข่มุก, ส้มตำ ไม่ต้องนั่งพิมพ์ใหม่ทั้งหมด</p>
-                </div>
-                <!-- Feature 3 -->
-                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
-                    <div class="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 text-2xl mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-bolt"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Real-time Calculation</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">แก้ไขตัวเลขปุ๊บ ระบบคำนวณต้นทุน ยอดคงเหลือ และอัปเดตสถานะให้ทันทีโดยไม่ต้องกดรีเฟรชหน้าเว็บ</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="s">
+  <div class="wrap">
+    <h2 class="t">ทำให้ตัดสินใจเรื่องของได้ง่ายขึ้น</h2>
+    <div class="f-list">
+      <div><h3>เห็นคอขวดทันที</h3><p>แถวที่หมดก่อนถูกไฮไลต์สีแดง และสรุปเป็นประโยคเดียวด้านบน ไม่ต้องไล่ดูทีละแถว</p></div>
+      <div><h3>รู้ต้นทุนและกำไรต่อที่</h3><p>ใส่ราคาวัตถุดิบกับราคาขาย ระบบคิดต้นทุนต่อหน่วยและกำไรให้</p></div>
+      <div><h3>ข้อมูลไม่หายเวลาสลับเมนู</h3><p>แต่ละเทมเพลตเก็บตัวเลขของตัวเองแยกกัน กลับมาแก้ต่อได้เสมอ</p></div>
+      <div><h3>ใช้บนมือถือได้ระหว่างนับของ</h3><p>หน้าจอเล็กจะเปลี่ยนตารางเป็นการ์ดต่อวัตถุดิบ พิมพ์ตัวเลขง่าย พร้อมดาวน์โหลดเป็น CSV</p></div>
+    </div>
+  </div>
+</section>
 
-    <!-- Footer CTA -->
-    <footer id="about" class="relative z-10 py-20 px-6 text-center">
-        <div class="max-w-3xl mx-auto glass-card border border-amber-500/30 p-10 rounded-3xl bg-gradient-to-b from-amber-900/20 to-transparent">
-            <h2 class="text-3xl font-bold mb-6">พร้อมที่จะจัดการสต๊อกให้เป๊ะแล้วหรือยัง?</h2>
-            <p class="text-gray-400 mb-8">คลิกเดียวเพื่อเข้าสู่ระบบ ไม่ต้องล็อกอิน ไม่ต้องติดตั้งแอป ข้อมูลอยู่บนเครื่องคุณ 100%</p>
-            <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
-            <a href="index.html" class="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-[#0B0F19] font-bold px-8 py-4 rounded-full transition transform hover:scale-105">
-                เปิดแอปพลิเคชัน <i class="fa-solid fa-arrow-right"></i>
-            </a>
-        </div>
-        
-        <div class="mt-20 text-sm text-gray-600">
-            <p>© 2026 สรุปครับ (Sarupkrob) | Project for AI in Modern Life KMUTNB</p>
-        </div>
-    </footer>
+<section class="final">
+  <div class="wrap">
+    <h2>นับสต๊อกวันนี้ ให้เสร็จในไม่กี่นาที</h2>
+    <p>ไม่ต้องล็อกอิน ไม่ต้องติดตั้งแอป</p>
+    <a class="btn yolk" href="index.html">เปิดแอปคำนวณสต๊อก</a>
+  </div>
+</section>
 
+<footer>
+  <div class="wrap">© 2026 สรุปครับ (Sarupkrob) · โปรเจกต์วิชา AI in Modern Life, KMUTNB</div>
+</footer>
+
+<script>
+(function(){
+  const items = [
+    { name:'ขนมปัง', unit:'แผ่น', per:2, stock:110, max:200 },
+    { name:'ไส้กรอก', unit:'ชิ้น', per:1, stock:58, max:120 },
+    { name:'ไข่', unit:'ฟอง', per:0.5, stock:60, max:100 }
+  ];
+  const box = document.getElementById('demoRows');
+  box.innerHTML = items.map((it, i) => `
+    <div class="d-row" data-i="${i}">
+      <div class="n">${it.name}<small>ใช้ ${it.per} ${it.unit}/ชิ้น</small></div>
+      <div class="d-main">
+        <input type="range" min="0" max="${it.max}" value="${it.stock}" aria-label="สต๊อก${it.name}">
+        <div class="d-bar"><i></i></div>
+      </div>
+      <div class="v num"></div>
+    </div>`).join('');
+
+  function update(){
+    const poss = items.map(it => Math.floor(it.stock / it.per));
+    const min = Math.min(...poss), mx = Math.max(...poss, 1);
+    const bn = [];
+    items.forEach((it, i) => {
+      const row = box.children[i];
+      row.classList.toggle('bn', poss[i] === min);
+      if (poss[i] === min) bn.push(it.name);
+      row.querySelector('.v').textContent = it.stock + ' ' + it.unit;
+      row.querySelector('.d-bar i').style.width = Math.max(poss[i] > 0 ? 3 : 0, poss[i] / mx * 100) + '%';
+    });
+    document.getElementById('dNum').textContent = min;
+    document.getElementById('dTxt').innerHTML = min === 0
+      ? '<strong>' + bn.join(', ') + '</strong> หมดแล้ว ทำเพิ่มไม่ได้'
+      : 'ชิ้น <strong>' + bn.join(', ') + '</strong> หมดก่อน';
+  }
+  box.addEventListener('input', e => {
+    if (e.target.type !== 'range') return;
+    items[+e.target.closest('.d-row').dataset.i].stock = +e.target.value;
+    update();
+  });
+  update();
+})();
+</script>
 </body>
 </html>
