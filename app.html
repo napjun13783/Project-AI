@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartInventory – คำนวณวัตถุดิบและสต๊อกคงเหลือ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5EF; --card:#FFFFFF; --ink:#1B2A22; --muted:#66756B; --line:#D9DFD3;
+  --green:#1F5C3F; --green-d:#163F2C; --yolk:#F2B632;
+  --chili:#C7372B; --chili-bg:#FDECEA; --ok:#2F7A4F; --ok-bg:#E6F2EA; --warn:#8A6100; --warn-bg:#FFF1CC;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Sarabun','Prompt',system-ui,sans-serif;font-size:16px;line-height:1.5}
+h1,h2,h3,.display{font-family:'Prompt','Sarabun',sans-serif;margin:0}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yolk);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 16px 56px}
+.num{font-variant-numeric:tabular-nums}
+
+/* top */
+.top{display:flex;justify-content:space-between;align-items:center;padding:6px 0 18px;gap:12px}
+.brand{font-family:'Prompt',sans-serif;font-weight:700;font-size:20px;color:var(--green-d);text-decoration:none}
+.top a.back{color:var(--muted);text-decoration:none;font-size:14px}
+.top a.back:hover{color:var(--green)}
+
+/* template chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;transition:background .15s,border-color .15s}
+.chip:hover{border-color:var(--green)}
+.chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+
+/* verdict */
+.verdict{margin:12px 0 20px;background:var(--green-d);color:#EEF3EA;border-radius:22px;padding:28px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:center}
+.verdict .lead{font-size:14px;opacity:.75;margin:0 0 4px}
+.verdict .big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.verdict .big b{font-family:'Prompt',sans-serif;font-weight:700;font-size:clamp(60px,12vw,100px);line-height:1;color:var(--yolk)}
+.verdict .big span{font-size:22px;font-weight:500}
+.verdict .say{margin:10px 0 0;font-size:18px;max-width:34ch}
+.verdict .say strong{color:#fff;border-bottom:2px solid var(--yolk)}
+.figs{margin:0;display:grid;gap:0}
+.figs div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.14)}
+.figs div:last-child{border-bottom:0}
+.figs dt{opacity:.75;font-size:15px}
+.figs dd{margin:0;font-weight:600;text-align:right}
+
+/* panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px}
+.settings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:18px 20px;margin-bottom:20px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.field .hint{font-size:12px;color:var(--muted);margin-top:4px}
+.in{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFBF8;transition:border-color .15s,box-shadow .15s}
+.in:focus{outline:none;border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(31,92,63,.15)}
+.in.c{text-align:center}
+
+.ledger-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.ledger-head h2{font-size:18px;font-weight:600}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--green);background:#F6FAF7}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.primary:hover{background:var(--green-d)}
+.btn.danger{color:var(--chili)}
+.btn.danger:hover{border-color:var(--chili);background:var(--chili-bg)}
+.btn.sm{padding:5px 10px;font-size:14px}
+
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-weight:600;font-size:13px;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+thead th.c{text-align:center}
+tbody td{padding:10px;border-bottom:1px solid #EEF1EA;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr.bn{background:var(--chili-bg);box-shadow:inset 4px 0 0 var(--chili)}
+td .res{display:flex;align-items:center;gap:8px;justify-content:space-between}
+td .res b{font-family:'Prompt',sans-serif;font-size:20px;font-weight:600}
+.badge{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.badge.bn,.badge.out{background:var(--chili);color:#fff}
+.badge.low{background:var(--warn-bg);color:var(--warn)}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.na{background:#EEF1EA;color:var(--muted)}
+.bar{height:6px;background:#E8ECE3;border-radius:99px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .25s}
+tr.bn .bar i,tr .bar i.out{background:var(--chili)}
+.x{border:0;background:none;color:#A5B0A8;font-size:22px;line-height:1;cursor:pointer;padding:4px 10px;border-radius:8px}
+.x:hover{color:var(--chili);background:var(--chili-bg)}
+.empty{padding:36px 20px;text-align:center;color:var(--muted)}
+.empty button{margin-top:12px}
+
+/* plan */
+.plan{margin-top:20px;padding:20px}
+.plan h2{font-size:18px;font-weight:600;margin-bottom:2px}
+.plan p.sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+.plan table td,.plan table th{padding:8px 4px}
+.plan td.r,.plan th.r{text-align:right}
+.plan .sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.plan .sum div{background:#F6F8F3;border-radius:12px;padding:12px 14px}
+.plan .sum small{display:block;color:var(--muted);font-size:13px}
+.plan .sum b{font-family:'Prompt',sans-serif;font-size:20px;font-weight:600}
+.plan .sum b.neg{color:var(--chili)}
+.plan .note{padding:14px;border-radius:12px;background:var(--ok-bg);color:var(--ok);font-weight:500}
+.plan-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:22px;font-size:14px;color:var(--muted)}
+.foot .acts{display:flex;gap:8px;flex-wrap:wrap}
+
+/* toast + dialog */
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:10px 14px 10px 18px;border-radius:12px;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{background:none;border:0;color:var(--yolk);font-weight:600;cursor:pointer;padding:4px 6px}
+dialog{border:0;border-radius:18px;padding:24px;max-width:380px;width:calc(100vw - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(22,63,44,.45)}
+dialog p{margin:0 0 18px;font-size:17px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end}
+
+/* mobile */
+@media (max-width:767px){
+  .verdict{grid-template-columns:1fr;padding:22px;gap:18px}
+  .settings{grid-template-columns:1fr 1fr}
+  .settings .field:last-child{grid-column:1/-1}
+  .plan .sum{grid-template-columns:1fr}
+  #ledger thead{display:none}
+  #ledger,#ledger tbody{display:block}
+  #ledger tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;padding:16px;border-bottom:1px solid var(--line);position:relative}
+  #ledger tr:last-child{border-bottom:0}
+  #ledger td{display:block;padding:0;border:0}
+  #ledger td::before{content:attr(data-label);display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+  #ledger td.name,#ledger td.result{grid-column:1/-1}
+  #ledger td.del{position:absolute;top:8px;right:6px}
+  #ledger td.del::before,#ledger td.name::before{display:none}
+  #ledger td.name{padding-right:36px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="index.html">SmartInventory</a>
+    <a class="back" href="index.html">กลับหน้าแรก</a>
+  </header>
+
+  <div class="chips" id="chips" role="group" aria-label="เลือกเทมเพลตร้านค้า"></div>
+
+  <section class="verdict" aria-live="polite">
+    <div>
+      <p class="lead">จากสต๊อกตอนนี้ ทำได้อีก</p>
+      <div class="big"><b class="num" id="vNum">0</b><span id="vUnit">ชิ้น</span></div>
+      <p class="say" id="vSay"></p>
+    </div>
+    <dl class="figs">
+      <div><dt>มูลค่าสต๊อกรวม</dt><dd class="num" id="fValue">0.00 บาท</dd></div>
+      <div><dt>ต้นทุนวัตถุดิบต่อ <span class="u">ชิ้น</span></dt><dd class="num" id="fCost">0.00 บาท</dd></div>
+      <div><dt>กำไรต่อ <span class="u">ชิ้น</span></dt><dd class="num" id="fProfit">-</dd></div>
+    </dl>
+  </section>
+
+  <section class="panel settings" aria-label="ตั้งค่าเมนู">
+    <div class="field">
+      <label for="setUnit">เรียกหน่วยที่ขายว่า</label>
+      <input class="in" id="setUnit" type="text" placeholder="เช่น ชิ้น, แก้ว, จาน">
+    </div>
+    <div class="field">
+      <label for="setSell">ราคาขายต่อ <span class="u">ชิ้น</span> (บาท)</label>
+      <input class="in" id="setSell" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+    </div>
+    <div class="field">
+      <label for="setTarget">อยากทำให้ได้ (<span class="u">ชิ้น</span>)</label>
+      <input class="in" id="setTarget" type="number" inputmode="decimal" min="0" step="any" placeholder="ใส่จำนวน เพื่อดูว่าต้องซื้ออะไรเพิ่ม">
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="ledger-head">
+      <h2>รายการวัตถุดิบ</h2>
+      <button class="btn primary" id="addBtn" type="button">เพิ่มวัตถุดิบ</button>
+    </div>
+    <table id="ledger">
+      <thead>
+        <tr>
+          <th style="min-width:170px">วัตถุดิบ</th>
+          <th style="width:100px" class="c">หน่วยนับ</th>
+          <th style="width:120px" class="c" id="thPer">ใช้ต่อ 1 ชิ้น</th>
+          <th style="width:120px" class="c">คงเหลือ</th>
+          <th style="width:120px" class="c">ราคาต่อหน่วย</th>
+          <th style="width:200px" id="thPossible">ทำได้อีก</th>
+          <th style="width:48px"><span class="sr" style="position:absolute;left:-9999px">ลบ</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>
+      ยังไม่มีวัตถุดิบในเมนูนี้
+      <div><button class="btn primary" type="button" id="emptyAdd">เพิ่มวัตถุดิบตัวแรก</button></div>
+    </div>
+  </section>
+
+  <section class="panel plan" aria-live="polite">
+    <h2>ต้องซื้อเพิ่มเท่าไหร่</h2>
+    <p class="sub" id="planSub"></p>
+    <div id="planBody"></div>
+  </section>
+
+  <div class="foot">
+    <span>ข้อมูลบันทึกในเบราว์เซอร์เครื่องนี้ แยกตามเทมเพลต สลับไปมาได้โดยข้อมูลไม่หาย</span>
+    <div class="acts">
+      <button class="btn" type="button" id="csvBtn">ดาวน์โหลด CSV</button>
+      <button class="btn" type="button" id="resetBtn">คืนค่าเริ่มต้นของเทมเพลต</button>
+      <button class="btn danger" type="button" id="clearBtn">ล้างรายการ</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastAct" hidden>เลิกทำ</button></div>
+<dialog id="dlg"><p id="dlgMsg"></p><div class="row"><button class="btn" id="dlgNo" type="button">ยกเลิก</button><button class="btn primary" id="dlgYes" type="button">ยืนยัน</button></div></dialog>
+
+<script>
+const KEY = 'smart_inventory_v2';
+
+const PRESETS = {
+  sandwich: { name:'ร้านแซนด์วิช', unitName:'ชิ้น', sell:35, data:[
+    {name:'ขนมปัง',unit:'แผ่น',perPiece:2,stock:110,price:2.22},
+    {name:'ไส้กรอก',unit:'ชิ้น',perPiece:1,stock:58,price:3.95},
+    {name:'โบโลน่า',unit:'แผ่น',perPiece:1.5,stock:65,price:1.475},
+    {name:'ไข่',unit:'ฟอง',perPiece:0.5,stock:60,price:5},
+    {name:'กรีนโอ๊ค',unit:'ส่วน',perPiece:0.5,stock:50,price:4.6},
+    {name:'แครอท',unit:'ส่วน',perPiece:0.5,stock:30,price:0.33},
+    {name:'มายองเนส',unit:'ส่วน',perPiece:0.5,stock:50,price:4.33}]},
+  coffee: { name:'ร้านกาแฟ (ลาเต้)', unitName:'แก้ว', sell:60, data:[
+    {name:'เมล็ดกาแฟ',unit:'กรัม',perPiece:18,stock:1000,price:0.5},
+    {name:'นมสด',unit:'มล.',perPiece:120,stock:2000,price:0.05},
+    {name:'น้ำเชื่อม',unit:'มล.',perPiece:15,stock:800,price:0.1},
+    {name:'น้ำแข็ง',unit:'กรัม',perPiece:150,stock:5000,price:0.01},
+    {name:'แก้วพลาสติก',unit:'ใบ',perPiece:1,stock:50,price:2.5},
+    {name:'หลอด',unit:'อัน',perPiece:1,stock:100,price:0.2}]},
+  bubbletea: { name:'ร้านชานมไข่มุก', unitName:'แก้ว', sell:55, data:[
+    {name:'ใบชา',unit:'กรัม',perPiece:10,stock:500,price:1.2},
+    {name:'ครีมเทียม',unit:'กรัม',perPiece:20,stock:1000,price:0.15},
+    {name:'น้ำตาลทราย',unit:'กรัม',perPiece:30,stock:2000,price:0.03},
+    {name:'ไข่มุก (ต้มแล้ว)',unit:'กรัม',perPiece:50,stock:800,price:0.08},
+    {name:'แก้ว+ฝาซีล',unit:'ชุด',perPiece:1,stock:120,price:3},
+    {name:'หลอดใหญ่',unit:'อัน',perPiece:1,stock:200,price:0.5}]},
+  somtum: { name:'ร้านส้มตำ', unitName:'ครก', sell:50, data:[
+    {name:'มะละกอสับ',unit:'กรัม',perPiece:150,stock:2000,price:0.04},
+    {name:'พริกสด',unit:'เม็ด',perPiece:5,stock:200,price:0.5},
+    {name:'กระเทียม',unit:'กลีบ',perPiece:3,stock:150,price:0.3},
+    {name:'มะเขือเทศ',unit:'ลูก',perPiece:1.5,stock:40,price:2},
+    {name:'ถั่วฝักยาว',unit:'เส้น',perPiece:1,stock:30,price:1.5},
+    {name:'ถั่วลิสงคั่ว',unit:'ช้อน',perPiece:1,stock:50,price:1},
+    {name:'น้ำปลา/น้ำตาล',unit:'ส่วน',perPiece:1,stock:100,price:2}]},
+  custom: { name:'สร้างเมนูเอง', unitName:'หน่วย', sell:0, data:[
+    {name:'',unit:'',perPiece:1,stock:0,price:0}]}
+};
+
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d=2) => Number(n).toLocaleString('th-TH', {minimumFractionDigits:d, maximumFractionDigits:d});
+const qty = n => Number(n).toLocaleString('th-TH', {maximumFractionDigits:2});
+const $ = id => document.getElementById(id);
+
+let state = null;
+
+/* ---------- storage ---------- */
+function load(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+  if (!s || !s.stores || !PRESETS[s.store]) {
+    s = { store:'sandwich', stores:{} };
+    // ย้ายข้อมูลจากเวอร์ชันเก่า
+    try {
+      const oldData = JSON.parse(localStorage.getItem('smart_inventory_data'));
+      const oldStore = localStorage.getItem('smart_inventory_store');
+      if (Array.isArray(oldData) && PRESETS[oldStore]) {
+        s.store = oldStore;
+        s.stores[oldStore] = { unitName:PRESETS[oldStore].unitName, sell:PRESETS[oldStore].sell, target:0, items:oldData };
+      }
+    } catch(e){}
+  }
+  state = s;
+  const q = new URLSearchParams(location.search).get('store');
+  if (q && PRESETS[q]) state.store = q;
+  ensure(state.store);
+}
+function ensure(key){
+  if (!state.stores[key]) {
+    const p = PRESETS[key];
+    state.stores[key] = { unitName:p.unitName, sell:p.sell, target:0, items:clone(p.data) };
+  }
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+const cur = () => state.stores[state.store];
+
+/* ---------- calculation ---------- */
+function calc(){
+  const items = cur().items;
+  const rows = items.map(it => {
+    const per = it.perPiece > 0 ? it.perPiece : 0;
+    const stock = Math.max(it.stock || 0, 0);
+    return { per, stock, possible: per > 0 ? Math.floor(stock / per) : Infinity };
+  });
+  const finite = rows.map(r => r.possible).filter(Number.isFinite);
+  const min = finite.length ? Math.min(...finite) : 0;
+  const max = finite.length ? Math.max(...finite) : 0;
+  rows.forEach(r => {
+    r.bn = Number.isFinite(r.possible) && r.possible === min;
+    if (!Number.isFinite(r.possible)) r.status = 'na';
+    else if (r.bn) r.status = r.possible === 0 ? 'out' : 'bn';
+    else if (r.stock <= 0) r.status = 'out';
+    else if (r.possible <= min + Math.ceil(min * 0.5)) r.status = 'low';
+    else r.status = 'ok';
+  });
+  const cost = items.reduce((a, it) => a + (it.perPiece > 0 ? it.perPiece : 0) * (it.price || 0), 0);
+  const value = items.reduce((a, it) => a + (it.stock || 0) * (it.price || 0), 0);
+  return { rows, min, max, cost, value, hasFinite: finite.length > 0 };
+}
+
+/* ---------- render ---------- */
+const STATUS_TEXT = { bn:'หมดก่อน', out:'หมดแล้ว', low:'ใกล้หมด', ok:'พอ', na:'ไม่ใช้' };
+
+function resultHTML(r){
+  const label = Number.isFinite(r.possible) ? qty(r.possible) : '–';
+  return `<div class="res"><b class="num">${label}</b><span class="badge ${r.status}">${STATUS_TEXT[r.status]}</span></div>`
+       + `<div class="bar"><i class="${r.status==='out'?'out':''}" style="width:${barWidth(r)}%"></i></div>`;
+}
+function barWidth(r){
+  if (!Number.isFinite(r.possible)) return 0;
+  const mx = CALC.max || 1;
+  return Math.max(r.possible > 0 ? 3 : 0, Math.min(100, r.possible / mx * 100));
+}
+
+let CALC = null;
+
+function renderChips(){
+  $('chips').innerHTML = Object.entries(PRESETS).map(([k, p]) =>
+    `<button class="chip" type="button" data-store="${k}" aria-pressed="${k===state.store}">${esc(p.name)}</button>`).join('');
+}
+
+function renderAll(){
+  renderChips();
+  const s = cur();
+  $('setUnit').value = s.unitName;
+  $('setSell').value = s.sell || '';
+  $('setTarget').value = s.target || '';
+  renderRows();
+}
+
+function renderRows(){
+  const s = cur();
+  $('tbody').innerHTML = s.items.map((it, i) => `
+    <tr data-i="${i}">
+      <td class="name" data-label="วัตถุดิบ"><input class="in" data-f="name" value="${esc(it.name)}" placeholder="ชื่อวัตถุดิบ" aria-label="ชื่อวัตถุดิบ"></td>
+      <td data-label="หน่วยนับ"><input class="in c" data-f="unit" value="${esc(it.unit)}" placeholder="เช่น กรัม" aria-label="หน่วยนับ"></td>
+      <td data-label="ใช้ต่อ 1 ${esc(s.unitName)}"><input class="in c num" data-f="perPiece" type="number" inputmode="decimal" min="0" step="any" value="${it.perPiece}" aria-label="ปริมาณที่ใช้ต่อหนึ่งหน่วยขาย"></td>
+      <td data-label="คงเหลือ"><input class="in c num" data-f="stock" type="number" inputmode="decimal" min="0" step="any" value="${it.stock}" aria-label="คงเหลือ"></td>
+      <td data-label="ราคาต่อหน่วย (บาท)"><input class="in c num" data-f="price" type="number" inputmode="decimal" min="0" step="any" value="${it.price}" aria-label="ราคาต่อหน่วย"></td>
+      <td class="result" data-label="ทำได้อีก"></td>
+      <td class="del"><button class="x" type="button" data-del="${i}" aria-label="ลบ ${esc(it.name)}">&times;</button></td>
+    </tr>`).join('');
+  $('empty').hidden = s.items.length > 0;
+  $('ledger').hidden = s.items.length === 0;
+  refresh();
+}
+
+function refresh(){
+  const s = cur(), c = calc(); CALC = c;
+  const u = s.unitName || 'หน่วย';
+  document.querySelectorAll('.u').forEach(e => e.textContent = u);
+  $('vUnit').textContent = u;
+  $('thPer').textContent = `ใช้ต่อ 1 ${u}`;
+  $('thPossible').textContent = `ทำได้อีก (${u})`;
+  document.querySelectorAll('#tbody tr').forEach((tr, i) => {
+    const r = c.rows[i]; if (!r) return;
+    tr.classList.toggle('bn', r.status === 'bn' || (r.status === 'out' && r.bn));
+    tr.querySelector('td.result').innerHTML = resultHTML(r);
+    tr.children[2].setAttribute('data-label', `ใช้ต่อ 1 ${u}`);
+  });
+
+  // verdict
+  $('vNum').textContent = qty(c.hasFinite ? c.min : 0);
+  const names = s.items.filter((_, i) => c.rows[i].bn).map(it => it.name || 'ไม่มีชื่อ');
+  const shown = names.length > 3 ? names.slice(0, 3).join(', ') + ` และอีก ${names.length - 3} รายการ` : names.join(', ');
+  if (!c.hasFinite) $('vSay').textContent = 'เพิ่มวัตถุดิบและปริมาณที่ใช้ แล้วระบบจะบอกว่าอะไรหมดก่อน';
+  else if (c.min === 0) $('vSay').innerHTML = `<strong>${esc(shown)}</strong> หมดแล้ว ต้องซื้อก่อนถึงจะทำเพิ่มได้`;
+  else $('vSay').innerHTML = `<strong>${esc(shown)}</strong> หมดก่อน ถ้าจะสั่งของ ให้เริ่มจากตัวนี้`;
+
+  $('fValue').textContent = `${fmt(c.value)} บาท`;
+  $('fCost').textContent = `${fmt(c.cost)} บาท`;
+  if (s.sell > 0) {
+    const p = s.sell - c.cost;
+    $('fProfit').textContent = `${fmt(p)} บาท (${fmt(p / s.sell * 100, 0)}%)`;
+  } else $('fProfit').textContent = 'ใส่ราคาขายด้านล่าง';
+
+  renderPlan(c);
+}
+
+function shortfalls(c){
+  const s = cur(), T = s.target || 0;
+  return s.items.map((it, i) => {
+    const per = c.rows[i].per;
+    const need = per * T;
+    const buy = Math.max(0, need - (it.stock || 0));
+    return { name: it.name || 'ไม่มีชื่อ', unit: it.unit, buy, cost: buy * (it.price || 0) };
+  }).filter(x => x.buy > 0);
+}
+
+function renderPlan(c){
+  const s = cur(), T = s.target || 0, u = s.unitName || 'หน่วย';
+  if (!(T > 0)) {
+    $('planSub').textContent = '';
+    $('planBody').innerHTML = `<p style="margin:0;color:var(--muted)">ใส่ “อยากทำให้ได้” ในช่องด้านบน เช่น 100 ${esc(u)} ระบบจะสรุปรายการที่ต้องซื้อเพิ่มและงบที่ต้องใช้</p>`;
+    return;
+  }
+  $('planSub').textContent = `เป้าหมาย ${qty(T)} ${u}`;
+  const list = shortfalls(c);
+  const revenue = T * (s.sell || 0), ingredient = T * c.cost, buyTotal = list.reduce((a, x) => a + x.cost, 0);
+  const profit = revenue - ingredient;
+  let html = '';
+  if (!list.length) html += `<div class="note">สต๊อกที่มีอยู่พอสำหรับ ${qty(T)} ${esc(u)} ไม่ต้องซื้อเพิ่ม</div>`;
+  else {
+    html += `<table><thead><tr><th>วัตถุดิบ</th><th class="r">ต้องซื้อเพิ่ม</th><th class="r">ประมาณ (บาท)</th></tr></thead><tbody>`
+      + list.map(x => `<tr><td>${esc(x.name)}</td><td class="r num">${qty(Math.ceil(x.buy * 100) / 100)} ${esc(x.unit)}</td><td class="r num">${fmt(x.cost)}</td></tr>`).join('')
+      + `</tbody></table>`;
+  }
+  html += `<div class="sum">
+    <div><small>งบซื้อของเพิ่ม</small><b class="num">${fmt(buyTotal)} บาท</b></div>
+    <div><small>ยอดขายถ้าขายหมด</small><b class="num">${s.sell > 0 ? fmt(revenue) + ' บาท' : '-'}</b></div>
+    <div><small>กำไรจากวัตถุดิบ</small><b class="num ${profit < 0 ? 'neg' : ''}">${s.sell > 0 ? fmt(profit) + ' บาท' : '-'}</b></div>
+  </div>`;
+  if (list.length) html += `<div class="plan-actions"><button class="btn" type="button" id="copyBtn">คัดลอกรายการซื้อ</button></div>`;
+  $('planBody').innerHTML = html;
+}
+
+/* ---------- events ---------- */
+$('chips').addEventListener('click', e => {
+  const b = e.target.closest('[data-store]'); if (!b) return;
+  state.store = b.dataset.store; ensure(state.store); save(); renderAll();
+});
+
+$('tbody').addEventListener('input', e => {
+  const f = e.target.dataset.f; if (!f) return;
+  const i = +e.target.closest('tr').dataset.i;
+  const it = cur().items[i];
+  it[f] = (f === 'name' || f === 'unit') ? e.target.value : (parseFloat(e.target.value) || 0);
+  save(); refresh();
+});
+
+$('tbody').addEventListener('click', e => {
+  const b = e.target.closest('[data-del]'); if (!b) return;
+  const i = +b.dataset.del, removed = cur().items.splice(i, 1)[0];
+  save(); renderRows();
+  toast(`ลบ “${removed.name || 'รายการ'}” แล้ว`, () => { cur().items.splice(i, 0, removed); save(); renderRows(); });
+});
+
+function addRow(){
+  cur().items.push({ name:'', unit:'', perPiece:1, stock:0, price:0 });
+  save(); renderRows();
+  const ins = document.querySelectorAll('#tbody tr:last-child input');
+  if (ins[0]) { ins[0].focus(); ins[0].closest('tr').scrollIntoView({block:'center', behavior:'smooth'}); }
+}
+$('addBtn').onclick = addRow;
+$('emptyAdd').onclick = addRow;
+
+$('setUnit').addEventListener('input', e => { cur().unitName = e.target.value; save(); refresh(); });
+$('setSell').addEventListener('input', e => { cur().sell = parseFloat(e.target.value) || 0; save(); refresh(); });
+$('setTarget').addEventListener('input', e => { cur().target = parseFloat(e.target.value) || 0; save(); refresh(); });
+
+$('planBody').addEventListener('click', e => {
+  if (e.target.id !== 'copyBtn') return;
+  const s = cur(), list = shortfalls(CALC);
+  const text = `รายการซื้อเพิ่ม (เป้าหมาย ${qty(s.target)} ${s.unitName})\n`
+    + list.map(x => `- ${x.name}: ${qty(Math.ceil(x.buy * 100) / 100)} ${x.unit} (ประมาณ ${fmt(x.cost)} บาท)`).join('\n')
+    + `\nรวมประมาณ ${fmt(list.reduce((a, x) => a + x.cost, 0))} บาท`;
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+    .then(() => toast('คัดลอกรายการซื้อแล้ว'))
+    .catch(() => toast('คัดลอกไม่สำเร็จ ลองเลือกข้อความแล้วคัดลอกเอง'));
+});
+
+$('csvBtn').onclick = () => {
+  const s = cur(), c = calc();
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [['วัตถุดิบ','หน่วยนับ',`ใช้ต่อ 1 ${s.unitName}`,'คงเหลือ','ราคาต่อหน่วย',`ทำได้อีก (${s.unitName})`].map(q).join(',')];
+  s.items.forEach((it, i) => lines.push([it.name, it.unit, it.perPiece, it.stock, it.price, Number.isFinite(c.rows[i].possible) ? c.rows[i].possible : ''].map(q).join(',')));
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `stock-${state.store}.csv`; a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$('resetBtn').onclick = async () => {
+  if (!await ask(`คืนค่าเริ่มต้นของ “${PRESETS[state.store].name}” ใช่ไหม? ตัวเลขที่แก้ไว้จะหายไป`)) return;
+  const p = PRESETS[state.store];
+  state.stores[state.store] = { unitName:p.unitName, sell:p.sell, target:0, items:clone(p.data) };
+  save(); renderAll(); toast('คืนค่าเริ่มต้นแล้ว');
+};
+$('clearBtn').onclick = async () => {
+  if (!await ask('ล้างรายการวัตถุดิบทั้งหมดในเมนูนี้ใช่ไหม?')) return;
+  const old = cur().items; cur().items = []; save(); renderRows();
+  toast('ล้างรายการแล้ว', () => { cur().items = old; save(); renderRows(); });
+};
+
+/* ---------- toast / dialog ---------- */
+let toastTimer;
+function toast(msg, undo){
+  $('toastMsg').textContent = msg;
+  const b = $('toastAct'); b.hidden = !undo;
+  b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); };
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), undo ? 6000 : 2600);
+}
+function ask(msg){
+  return new Promise(res => {
+    const d = $('dlg'); $('dlgMsg').textContent = msg;
+    const done = v => { d.close(); res(v); };
+    $('dlgYes').onclick = () => done(true);
+    $('dlgNo').onclick = () => done(false);
+    d.oncancel = () => res(false);
+    d.showModal();
+  });
+}
+
+load();
+renderAll();
+</script>
+</body>
+</html>
