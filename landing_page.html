@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartInventory.AI - ระบบจัดการสต๊อกอัจฉริยะ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out 3s infinite; }
+
+        /* Glowing Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-[#0B0F19] text-white min-h-screen overflow-x-hidden relative">
+
+    <!-- Background Glow Effects -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-amber-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 z-0 pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-orange-600/20 rounded-full mix-blend-screen filter blur-[100px] opacity-50 z-0 pointer-events-none"></div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-card border-b-0 border-white/10 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-amber-400 to-orange-600 text-white p-2.5 rounded-xl text-xl shadow-lg shadow-orange-500/30">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <span class="font-bold text-xl tracking-wide">SmartInventory<span class="text-amber-500">.AI</span></span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+                <a href="#features" class="hover:text-amber-400 transition">ความสามารถ</a>
+                <a href="#about" class="hover:text-amber-400 transition">เกี่ยวกับโปรเจกต์</a>
+            </div>
+            <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
+            <a href="index.html" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-full text-sm font-medium transition flex items-center gap-2 backdrop-blur-md">
+                เข้าสู่ระบบ <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+        <div class="flex-1 text-center lg:text-left space-y-8">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-amber-500/30 text-amber-400 text-sm font-medium mb-2">
+                <i class="fa-solid fa-sparkles"></i> โปรเจกต์วิชา AI in Modern Life
+            </div>
+            <h1 class="text-5xl lg:text-7xl font-extrabold leading-tight">
+                จัดการสต๊อกให้ฉลาดขึ้นด้วย <br>
+                <span class="text-gradient">AI & Data Analytics</span>
+            </h1>
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+                เปลี่ยนเรื่องน่าปวดหัวในการนับสต๊อกร้านอาหาร ให้เป็นเรื่องง่าย ระบบจะวิเคราะห์วัตถุดิบที่หมดก่อน (Bottleneck) พร้อมคำนวณยอดขายสูงสุดที่คุณทำได้แบบ Real-time
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
+                <a href="index.html" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold px-8 py-4 rounded-full shadow-lg shadow-orange-500/25 transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-rocket"></i> เริ่มต้นใช้งานฟรี
+                </a>
+                <a href="#features" class="glass-card hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-full transition flex items-center justify-center gap-3">
+                    <i class="fa-regular fa-circle-play"></i> ดูฟีเจอร์การทำงาน
+                </a>
+            </div>
+        </div>
+
+        <!-- 3D/Floating Visual Elements -->
+        <div class="flex-1 relative hidden md:block w-full h-[400px]">
+            <!-- Main Glass Card -->
+            <div class="absolute top-10 right-10 w-full max-w-md glass-card rounded-2xl p-6 shadow-2xl animate-float z-20 border-white/20">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-lg"><i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i> สรุปการผลิตวันนี้</h3>
+                    <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded">วัตถุดิบใกล้หมด!</span>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-white/5 rounded-lg p-4 flex justify-between items-center border border-white/5">
+                        <span class="text-gray-300">ผลิตได้สูงสุด</span>
+                        <span class="text-2xl font-bold text-amber-400">120 <span class="text-sm font-normal text-gray-500">เสิร์ฟ</span></span>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/5">
+                        <span class="text-gray-400 text-sm block mb-2">จุดคอขวด (Bottleneck)</span>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
+                            <div class="bg-red-500 h-2.5 rounded-full" style="width: 15%"></div>
+                        </div>
+                        <span class="text-red-400 font-medium text-sm">ขนมปัง (เหลือ 15%)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Small Floating Element -->
+            <div class="absolute -bottom-4 -left-4 glass-card rounded-xl p-4 shadow-xl animate-float-delayed z-30 border-amber-500/30">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">บันทึกข้อมูลอัตโนมัติ</p>
+                        <p class="text-xs text-gray-400">Local Storage Active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="relative z-10 py-20 bg-white/5 border-t border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">ทำไมต้องใช้ <span class="text-amber-400">SmartInventory</span></h2>
+                <p class="text-gray-400">ออกแบบมาเพื่อตอบโจทย์ร้านค้าขนาดย่อม (SME) และการวิเคราะห์ทางคณิตศาสตร์</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
+                    <div class="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-400 text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">AI Powered Logic</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">ใช้แนวคิดการวิเคราะห์จุดคอขวด (Bottleneck) แบบเดียวกับโรงงานอุตสาหกรรม มาย่อส่วนให้ใช้งานง่ายสำหรับร้านอาหาร</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
+                    <div class="w-14 h-14 bg-orange-500/20 rounded-2xl flex items-center justify-center text-orange-400 text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Ready-to-use Presets</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">มีเทมเพลตสูตรสำเร็จรูปสำหรับ ร้านกาแฟ, แซนด์วิช, ชานมไข่มุก, ส้มตำ ไม่ต้องนั่งพิมพ์ใหม่ทั้งหมด</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-white/5 transition duration-300 group">
+                    <div class="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Real-time Calculation</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">แก้ไขตัวเลขปุ๊บ ระบบคำนวณต้นทุน ยอดคงเหลือ และอัปเดตสถานะให้ทันทีโดยไม่ต้องกดรีเฟรชหน้าเว็บ</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <footer id="about" class="relative z-10 py-20 px-6 text-center">
+        <div class="max-w-3xl mx-auto glass-card border border-amber-500/30 p-10 rounded-3xl bg-gradient-to-b from-amber-900/20 to-transparent">
+            <h2 class="text-3xl font-bold mb-6">พร้อมที่จะจัดการสต๊อกให้เป๊ะแล้วหรือยัง?</h2>
+            <p class="text-gray-400 mb-8">คลิกเดียวเพื่อเข้าสู่ระบบ ไม่ต้องล็อกอิน ไม่ต้องติดตั้งแอป ข้อมูลอยู่บนเครื่องคุณ 100%</p>
+            <!-- ลิงก์ไปหน้า index.html (แอปคำนวณ) -->
+            <a href="index.html" class="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-[#0B0F19] font-bold px-8 py-4 rounded-full transition transform hover:scale-105">
+                เปิดแอปพลิเคชัน <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="mt-20 text-sm text-gray-600">
+            <p>© 2026 สรุปครับ (Sarupkrob) | Project for AI in Modern Life KMUTNB</p>
+        </div>
+    </footer>
+
+</body>
+</html>
