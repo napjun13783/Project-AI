@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคำนวณวัตถุดิบและสต๊อกคงเหลือ (Smart Inventory Calculator)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #FAF8F5;
+            color: #4A4A4A;
+        }
+        .cream-card {
+            background-color: #FFFFFF;
+            border: 1px solid #EFEAE4;
+            box-shadow: 0 4px 20px -2px rgba(140, 109, 88, 0.05);
+        }
+        .bottleneck-row {
+            background-color: #FFF2F2 !important;
+            border-left: 4px solid #EF4444;
+        }
+        .input-box {
+            background-color: #FCFBF9;
+            border: 1px solid #E2DCD5;
+            transition: all 0.2s ease;
+        }
+        .input-box:focus {
+            border-color: #8C6D58;
+            background-color: #FFFFFF;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(140, 109, 88, 0.15);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header Section -->
+        <header class="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl border border-amber-100 shadow-sm">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-amber-900 flex items-center justify-center md:justify-start gap-3">
+                    <i class="fa-solid fa-boxes-stacked text-amber-600"></i>
+                    ระบบคำนวณวัตถุดิบและสต๊อกคงเหลือ
+                </h1>
+                <p class="text-sm text-stone-500 mt-1">
+                    กรอก "คงเหลือตอนนี้" ตามที่นับจริง แล้วระบบจะคำนวณให้ว่าทำได้อีกกี่ชิ้น แถวสีแดงคือตัวที่จะหมดก่อนเพื่อน
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="loadPresetData()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-medium px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> โหลดตัวอย่าง
+                </button>
+                <button onclick="addNewRow()" class="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shadow-amber-900/10">
+                    <i class="fa-solid fa-plus"></i> เพิ่มวัตถุดิบ
+                </button>
+            </div>
+        </header>
+
+        <!-- Summary Dashboard Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="cream-card p-5 rounded-2xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-stone-400">ผลิตได้สูงสุด</span>
+                    <span class="p-2 bg-amber-50 text-amber-600 rounded-lg text-lg"><i class="fa-solid fa-utensils"></i></span>
+                </div>
+                <div class="text-3xl font-bold text-stone-800" id="maxProduction">0 <span class="text-base font-normal text-stone-500">ชิ้น</span></div>
+                <p class="text-xs text-stone-400 mt-1">ประเมินจากวัตถุดิบที่มีน้อยที่สุด</p>
+            </div>
+
+            <div class="cream-card p-5 rounded-2xl border-l-4 border-l-red-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">วัตถุดิบหมดก่อน</span>
+                    <span class="p-2 bg-red-50 text-red-500 rounded-lg text-lg"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                </div>
+                <div class="text-xl font-bold text-red-600 truncate" id="bottleneckItem">-</div>
+                <p class="text-xs text-stone-400 mt-1">ควรสั่งซื้อเพิ่มเป็นอันดับแรก</p>
+            </div>
+
+            <div class="cream-card p-5 rounded-2xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-stone-400">มูลค่าสต๊อกรวม</span>
+                    <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg text-lg"><i class="fa-solid fa-baht-sign"></i></span>
+                </div>
+                <div class="text-3xl font-bold text-emerald-700" id="totalValue">0.00 <span class="text-base font-normal text-stone-500">บาท</span></div>
+                <p class="text-xs text-stone-400 mt-1">คำนวณตามราคาต้นทุนต่อหน่วย</p>
+            </div>
+
+            <div class="cream-card p-5 rounded-2xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-stone-400">จำนวนวัตถุดิบ</span>
+                    <span class="p-2 bg-blue-50 text-blue-600 rounded-lg text-lg"><i class="fa-solid fa-list-check"></i></span>
+                </div>
+                <div class="text-3xl font-bold text-stone-800" id="totalItems">0 <span class="text-base font-normal text-stone-500">รายการ</span></div>
+                <p class="text-xs text-stone-400 mt-1">รายการทั้งหมดในระบบ</p>
+            </div>
+        </div>
+
+        <!-- Main Table Container -->
+        <div class="cream-card rounded-2xl overflow-hidden shadow-sm mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="inventoryTable">
+                    <thead>
+                        <tr class="bg-stone-100/70 border-b border-stone-200/80 text-stone-600 text-xs font-semibold uppercase tracking-wider">
+                            <th class="py-4 px-4 min-w-[160px]">วัตถุดิบ</th>
+                            <th class="py-4 px-3 w-28">หน่วย</th>
+                            <th class="py-4 px-3 w-28 text-center">ใช้ / ชิ้น</th>
+                            <th class="py-4 px-3 w-32 text-center">คงเหลือตอนนี้</th>
+                            <th class="py-4 px-3 w-32 text-center">ราคา / หน่วย</th>
+                            <th class="py-4 px-3 w-32 text-center">ทำได้อีก</th>
+                            <th class="py-4 px-3 w-20 text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-stone-100 text-sm">
+                        <!-- รายการวัตถุดิบจะถูกแสดงที่นี่ -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="flex flex-col sm:flex-row justify-between items-center text-xs text-stone-400 gap-4">
+            <p><i class="fa-solid fa-lightbulb text-amber-500"></i> แถวไฮไลต์สีแดงอ่อน คือวัตถุดิบที่เป็นข้อจำกัด (หมดเร็วที่สุด) ในการผลิต</p>
+            <button onclick="clearAllData()" class="text-red-500 hover:text-red-700 font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-trash-can"></i> ล้างข้อมูลทั้งหมด
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลเริ่มต้นสำหรับทดสอบ (ตรงตามรูปภาพตัวอย่าง)
+        const presetData = [
+            { name: "ขนมปัง", unit: "แผ่น", perPiece: 2, stock: 110, price: 2.22 },
+            { name: "ไส้กรอก", unit: "ชิ้น", perPiece: 1, stock: 58, price: 3.95 },
+            { name: "โบโลน่า", unit: "แผ่น", perPiece: 1.5, stock: 65, price: 1.475 },
+            { name: "ไข่", unit: "ฟอง", perPiece: 0.5, stock: 60, price: 5.00 },
+            { name: "กรีนโอ๊ค", unit: "ส่วน", perPiece: 0.5, stock: 50, price: 4.60 },
+            { name: "แครอท", unit: "ส่วน", perPiece: 0.5, stock: 30, price: 0.33 },
+            { name: "มายองเนส", unit: "ส่วน", perPiece: 0.5, stock: 50, price: 4.33 }
+        ];
+
+        let inventory = [];
+
+        function initApp() {
+            const savedData = localStorage.getItem('sandwich_inventory');
+            if (savedData) {
+                try {
+                    inventory = JSON.parse(savedData);
+                } catch (e) {
+                    inventory = [...presetData];
+                }
+            } else {
+                inventory = [...presetData];
+            }
+            renderTable();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('sandwich_inventory', JSON.stringify(inventory));
+        }
+
+        function loadPresetData() {
+            inventory = JSON.parse(JSON.stringify(presetData));
+            saveToLocalStorage();
+            renderTable();
+        }
+
+        function clearAllData() {
+            if (confirm("คุณต้องการล้างข้อมูลทั้งหมดใช่หรือไม่?")) {
+                inventory = [];
+                saveToLocalStorage();
+                renderTable();
+            }
+        }
+
+        function addNewRow() {
+            inventory.push({ name: "วัตถุดิบใหม่", unit: "หน่วย", perPiece: 1, stock: 0, price: 0 });
+            saveToLocalStorage();
+            renderTable();
+        }
+
+        function deleteRow(index) {
+            inventory.splice(index, 1);
+            saveToLocalStorage();
+            renderTable();
+        }
+
+        function updateValue(index, field, val) {
+            if (field === 'name' || field === 'unit') {
+                inventory[index][field] = val;
+            } else {
+                inventory[index][field] = parseFloat(val) || 0;
+            }
+            saveToLocalStorage();
+            calculateAndDisplay();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (inventory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-stone-400">
+                            ยังไม่มีรายการวัตถุดิบ กดปุ่ม "เพิ่มวัตถุดิบ" หรือ "โหลดตัวอย่าง" เพื่อเริ่มต้นใช้งาน
+                        </td>
+                    </tr>
+                `;
+                calculateAndDisplay();
+                return;
+            }
+
+            inventory.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.id = `row-${index}`;
+                tr.className = "hover:bg-stone-50/80 transition text-stone-700";
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <input type="text" value="${item.name}" oninput="updateValue(${index}, 'name', this.value)" 
+                               class="input-box w-full px-3 py-1.5 rounded-lg text-stone-800 font-medium">
+                    </td>
+                    <td class="py-3 px-3">
+                        <input type="text" value="${item.unit}" oninput="updateValue(${index}, 'unit', this.value)" 
+                               class="input-box w-full px-2 py-1.5 rounded-lg text-center text-stone-600">
+                    </td>
+                    <td class="py-3 px-3">
+                        <input type="number" step="any" value="${item.perPiece}" oninput="updateValue(${index}, 'perPiece', this.value)" 
+                               class="input-box w-full px-2 py-1.5 rounded-lg text-center font-medium">
+                    </td>
+                    <td class="py-3 px-3">
+                        <input type="number" step="any" value="${item.stock}" oninput="updateValue(${index}, 'stock', this.value)" 
+                               class="input-box w-full px-2 py-1.5 rounded-lg text-center font-semibold text-amber-900 bg-amber-50/50">
+                    </td>
+                    <td class="py-3 px-3">
+                        <input type="number" step="any" value="${item.price}" oninput="updateValue(${index}, 'price', this.value)" 
+                               class="input-box w-full px-2 py-1.5 rounded-lg text-center text-stone-600">
+                    </td>
+                    <td class="py-3 px-3 text-center font-bold text-lg text-stone-800" id="possible-${index}">
+                        0
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <button onclick="deleteRow(${index})" class="text-stone-300 hover:text-red-500 p-2 rounded-lg transition" title="ลบรายการ">
+                            <i class="fa-solid fa-xmark text-base"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calculateAndDisplay();
+        }
+
+        function calculateAndDisplay() {
+            if (inventory.length === 0) {
+                document.getElementById('maxProduction').innerText = '0 ชิ้น';
+                document.getElementById('bottleneckItem').innerText = '-';
+                document.getElementById('totalValue').innerText = '0.00 บาท';
+                document.getElementById('totalItems').innerText = '0 รายการ';
+                return;
+            }
+
+            let minPossible = Infinity;
+            let bottleneckName = '-';
+            let totalStockValue = 0;
+
+            inventory.forEach((item, index) => {
+                const perPiece = item.perPiece > 0 ? item.perPiece : 1;
+                const possible = Math.floor(item.stock / perPiece);
+                
+                const possibleCell = document.getElementById(`possible-${index}`);
+                if (possibleCell) {
+                    possibleCell.innerText = isNaN(possible) || possible < 0 ? 0 : possible;
+                }
+
+                totalStockValue += (item.stock * item.price);
+
+                if (possible < minPossible) {
+                    minPossible = possible;
+                    bottleneckName = item.name;
+                }
+            });
+
+            if (minPossible === Infinity || minPossible < 0) minPossible = 0;
+
+            inventory.forEach((item, index) => {
+                const row = document.getElementById(`row-${index}`);
+                if (row) {
+                    const perPiece = item.perPiece > 0 ? item.perPiece : 1;
+                    const possible = Math.floor(item.stock / perPiece);
+                    
+                    if (possible === minPossible && minPossible !== Infinity) {
+                        row.classList.add('bottleneck-row');
+                    } else {
+                        row.classList.remove('bottleneck-row');
+                    }
+                }
+            });
+
+            document.getElementById('maxProduction').innerHTML = `${minPossible} <span class="text-base font-normal text-stone-500">ชิ้น</span>`;
+            document.getElementById('bottleneckItem').innerText = bottleneckName;
+            document.getElementById('totalValue').innerHTML = `${totalStockValue.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="text-base font-normal text-stone-500">บาท</span>`;
+            document.getElementById('totalItems').innerHTML = `${inventory.length} <span class="text-base font-normal text-stone-500">รายการ</span>`;
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
